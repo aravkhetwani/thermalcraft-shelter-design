@@ -1,0 +1,42 @@
+[
+  {
+    "id": "rammed-earth",
+    "name": "Rammed Earth",
+    "thicknessCm": 30,
+    "density": 1994.0,
+    "thermalConductivity": 0.27,
+    "heatCapacity": 1.0,
+    "color": "#a97a4f",
+    "description": "Locally sourced compacted earth wall — high thermal mass, slow heat release."
+  },
+  {
+    "id": "pu-foam",
+    "name": "PU Foam",
+    "thicknessCm": 20,
+    "density": 263.0,
+    "thermalConductivity": 0.33,
+    "heatCapacity": 4.50,
+    "color": "#e8b04b",
+    "description": "Rigid polyurethane insulation panel — lightweight, high thermal resistance."
+  },
+  {
+    "id": "pcm",
+    "name": "PCM",
+    "thicknessCm": 20,
+    "density": 164.5,
+    "thermalConductivity": 0.15,
+    "heatCapacity": 1.5,
+    "color": "#3fb6c4",
+    "description": "Phase-change material layer — absorbs/releases latent heat to buffer swings."
+  },
+  {
+    "id": "insulated-composite",
+    "name": "Insulated Composite",
+    "thicknessCm": 25,
+    "density": 420.0,
+    "thermalConductivity": 0.09,
+    "heatCapacity": 2.1,
+    "color": "#5b7fd6",
+    "description": "Multi-layer engineered composite panel — balances mass and insulation."
+  }
+]
