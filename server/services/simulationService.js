@@ -1,6 +1,9 @@
 import materials from '../mockData/materials.json' with { type: 'json' };
 import climateData from '../mockData/climateData.json' with { type: 'json' };
 import precomputedResults from '../mockData/simulationResults.json' with { type: 'json' };
+import { config } from '../config.js';
+import { requestAnsysSimulation } from './ansysClient.js';
+import { formatSimulationResult } from './resultAdapter.js';
 
 const materialsById = Object.fromEntries(materials.map((m) => [m.id, m]));
 
@@ -26,9 +29,9 @@ function seededRandom(seedStr) {
 
 /**
  * Formulaic fallback generator — used only when a combo isn't in the
- * precomputed mock dataset. Produces plausible, deterministic (seeded by
- * comboKey) numbers so the same inputs always return the same result.
- * NOT physics — just enough shape/variance to demo any input combination.
+ * precomputed mock dataset and ANSYS is offline/disabled. Produces plausible,
+ * deterministic (seeded by comboKey) numbers so the same inputs always return
+ * the same result.
  */
 function generateMockResult(comboKey, { materialCombo, orientation, size, shape }) {
   const rand = seededRandom(comboKey);
@@ -97,16 +100,30 @@ function generateMockResult(comboKey, { materialCombo, orientation, size, shape 
   };
 }
 
-// TODO: swap this function's internals for a DB query or ANSYS-triggered
-// result — the signature (params in, frozen result-schema object out) and
-// return shape must not change. Mock: dataset lookup + formulaic fallback.
-// Later: `return await db.query(...)` or `return await triggerAnsysRun(...)`.
-export async function getResult(params) {
+/**
+ * Returns simulation results adhering to the frozen schema in server/schema.md.
+ * In 'ansys-live' mode, delegates to the ANSYS MAPDL microservice.
+ * Falls back to precomputed / mock dataset if service is unavailable or in 'mock' mode.
+ */
+export async function getResult(params = {}) {
   const comboKey = buildComboKey(params);
-  if (precomputedResults[comboKey]) {
-    return precomputedResults[comboKey];
+
+  // Live ANSYS Simulation Path
+  if (config.simulationMode === 'ansys-live') {
+    try {
+      const rawResult = await requestAnsysSimulation(params);
+      return formatSimulationResult(rawResult, 'ansys-live');
+    } catch (err) {
+      console.warn(`[simulationService] Live ANSYS run failed: ${err.message}. Falling back to precomputed/mock result.`);
+    }
   }
-  return generateMockResult(comboKey, params);
+
+  // Precomputed or Formulaic Fallback Path
+  if (precomputedResults[comboKey]) {
+    return formatSimulationResult(precomputedResults[comboKey], 'mock');
+  }
+  const mockGenerated = generateMockResult(comboKey, params);
+  return formatSimulationResult(mockGenerated, 'mock');
 }
 
 export function getMaterials() {

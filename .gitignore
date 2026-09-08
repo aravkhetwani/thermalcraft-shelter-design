@@ -21,10 +21,13 @@ env/
 .mypy_cache/
 .ruff_cache/
 
+# ANSYS artifacts
+file.lock
+*.vtk
+
 # IDE
 .vscode/
 .idea/
 
 # OS
-.DS_Store
 Thumbs.db

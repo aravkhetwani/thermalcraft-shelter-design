@@ -1,95 +1,196 @@
-# High Altitude Shelter Model — Dashboard (UI Phase)
+# High Altitude Passive Thermal Shelter — Simulation & Dashboard System
 
-A dark-themed, engineering-software-style dashboard for exploring passive
-shelter designs (material, size, shape, orientation) for thermal comfort in
-high-altitude cold regions like Ladakh.
+> **Smart India Hackathon (SIH 2026)**  
+> A high-performance passive thermal shelter design and simulation platform tailored for extreme high-altitude cold climates (e.g., Ladakh, -20°C ambient).
 
-**This phase is UI only.** Every number on screen — temperatures, solar
-energy, heat flow, efficiency scores — is mock data served by a small Express
-API. No real thermal physics is computed here; the real engine (ANSYS
-Transient Thermal, a precomputed database, or an interpolation model) plugs
-in later behind the same API contract without touching the React code.
+The platform couples a dark-themed engineering dashboard with a live **ANSYS Mechanical APDL (2026 R1 / v26.1)** Finite Element thermal physics simulation engine running via PyMAPDL and a FastAPI microservice.
 
-## Project structure
+---
 
+## 1. System Architecture
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│               React Dashboard (Port 5173)               │
+│          Vite + Tailwind + Three.js + Recharts          │
+└───────────────────────────┬─────────────────────────────┘
+                            │ HTTP (POST /api/run-simulation, GET /api/simulation-result)
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│            Node.js Express Server (Port 4000)           │
+│  - config.js (SIMULATION_MODE="ansys-live" | "mock")    │
+│  - services/ansysClient.js (FastAPI HTTP client)        │
+│  - services/resultAdapter.js (Frozen schema enforcement)│
+│  - services/simulationService.js (Engine & mock fallback│
+└───────────────────────────┬─────────────────────────────┘
+                            │ HTTP (POST /simulate, GET /health)
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│       Python FastAPI Microservice (Port 8000)           │
+│  - Ansys simulation/api/main.py (REST API)              │
+│  - Ansys simulation/api/service.py (Diurnal curve)      │
+│  - Ansys simulation/engine/physics_engine.py (Engine)   │
+└───────────────────────────┬─────────────────────────────┘
+                            │ gRPC via PyMAPDL
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│            ANSYS Mechanical APDL (v26.1)                │
+│  - SOLID87 10-Node Quadratic Tetrahedral Continuum      │
+│  - Robin Convection + Multi-Orientation Sol-Air         │
+│  - First Law Surface Power Ledger (Q_in ≈ Q_out)        │
+└─────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 2. Project Structure
+
+```text
 SIH_2026/
-├── server/                  # Express mock API
-│   ├── mockData/            # materials.json, climateData.json, simulationResults.json
+├── client/                     # React + Vite frontend dashboard
+│   ├── src/
+│   │   ├── api/client.js       # HTTP client talking to Node.js backend
+│   │   ├── context/SimulationContext.jsx  # State management (inputs, results, loading)
+│   │   └── components/
+│   │       ├── input/          # Location, Ambient, Shelter Design, Material System
+│   │       └── output/         # 3D Viewport, Temperature, Solar Energy, Heat Flow cards
+│   └── package.json
+│
+├── server/                     # Node.js Express API & Adapter
+│   ├── config.js               # Port, Simulation Mode, ANSYS URL configurations
+│   ├── routes/api.js           # API route handlers
 │   ├── services/
-│   │   └── simulationService.js   # the ONE swappable module (mock now, real engine later)
-│   ├── routes/api.js
-│   ├── schema.md            # frozen API contract, documented in full
-│   └── index.js
-└── client/                  # React + Vite dashboard
-    └── src/
-        ├── api/client.js     # the ONLY place the UI talks to HTTP — no inline mock data
-        ├── context/SimulationContext.jsx  # all app state (inputs, results, loading)
-        └── components/
-            ├── input/        # Location, Ambient Conditions, Shelter Design, Material System
-            └── output/       # 3D viewport + Inside Temp / Solar Energy / Heat Flow / Efficiency cards
+│   │   ├── ansysClient.js      # HTTP client to Python FastAPI microservice
+│   │   ├── resultAdapter.js    # Enforces frozen public schema (schema.md)
+│   │   └── simulationService.js# Swappable physics dispatcher with mock fallback
+│   ├── tests/
+│   │   └── ansysIntegration.test.js # Automated integration test suite
+│   ├── mockData/               # Precomputed offline datasets & materials library
+│   ├── schema.md               # Frozen public API contract documentation
+│   └── index.js                # Server entrypoint (Port 4000)
+│
+├── "Ansys simulation"/         # Standalone ANSYS FEA Simulation Engine & Microservice
+│   ├── api/                    # FastAPI microservice (Port 8000)
+│   │   ├── main.py             # FastAPI app with /health and /simulate
+│   │   ├── schemas.py          # Pydantic request & response models
+│   │   └── service.py          # Parameter mapping & diurnal curve generation
+│   ├── engine/                 # Production ANSYS Physics Engine
+│   │   ├── schemas.py          # Typed dataclass contracts
+│   │   ├── physics_preprocessor.py # McAdams wind convection, Sol-Air, R-values
+│   │   ├── ansys_session.py    # PyMAPDL session manager & timeout guards
+│   │   ├── geometry_engine.py  # 3D glued 7-block envelope geometry
+│   │   ├── material_manager.py # Linear thermal props & Bio-PCM enthalpy curves
+│   │   ├── boundary_conditions.py # Nodal Robin convection & body loads
+│   │   ├── solver_pipeline.py  # SOLID87 meshing & solver execution
+│   │   ├── result_extractor.py # Vectorized flux, surface power, energy auditor
+│   │   └── physics_engine.py   # Master run_simulation() API
+│   ├── tests/
+│   │   └── test_simulation.py  # Automated Python unit test suite
+│   ├── reports/                # Engineering reports & documentation ledger
+│   ├── run_simulation.py       # Standalone physics verification script
+│   └── README.md               # Dedicated engine documentation
+│
+└── docs/                       # Integration documentation & API contracts
+    └── integration/
+        ├── PHASE_7_MAIN_PROJECT_INTEGRATION_PROGRESS.md
+        ├── PHASE_7_BACKEND_INTEGRATION_PLAN.md
+        └── API_CONTRACT_SPECIFICATION.md
 ```
 
-## Layout decision
+---
 
-The reference image's single-page, three-zone layout (input panel left,
-3D view + output cards right) worked well as-is, so this build kept it as one
-page rather than splitting into routes — there wasn't enough distinct
-functionality (e.g. a standalone material-library admin screen) to justify
-extra navigation for a hackathon demo. React Router was left out for the same
-reason; it can be added later if the app grows more screens.
+## 3. Quick Start & Running the Stack
 
-## Running it
+To run the complete system with live ANSYS FEA simulation, start the three services in separate terminals:
 
-Two servers, run in separate terminals.
+### 1. Python FastAPI Simulation Microservice (Port 8000)
+```bash
+cd "Ansys simulation"
+uv run uvicorn api.main:app --host 127.0.0.1 --port 8000 --reload
+```
+*Health Check: `http://localhost:8000/health`*
 
-**1. Mock API server** (http://localhost:4000)
-
+### 2. Node.js Express API Server (Port 4000)
 ```bash
 cd server
 npm install
 npm run dev
 ```
+*Test API: `http://localhost:4000/api/materials` or `http://localhost:4000/api/simulation-result`*
 
-**2. React dashboard** (http://localhost:5173)
-
+### 3. React Frontend Dashboard (Port 5173)
 ```bash
 cd client
 npm install
 npm run dev
 ```
+Open **`http://localhost:5173`** in your browser.
 
-Open http://localhost:5173. The client reads `VITE_API_BASE_URL` (defaults to
-`http://localhost:4000/api`) if you need to point it elsewhere — set it in a
-`client/.env` file.
+---
 
-## How the data layer works (read this before wiring in real data)
+## 4. Simulation Modes
 
-- The frontend **only** calls four REST endpoints — `GET /api/materials`,
-  `GET /api/climate`, `GET /api/simulation-result`, `POST /api/run-simulation`
-  — documented exactly in [server/schema.md](server/schema.md). No component
-  ever imports a JSON file directly.
-- Every one of those endpoints returns data shaped by the frozen
-  `SimulationResult` / `Material` / `ClimateProfile` schemas (also mirrored as
-  JSDoc typedefs in `client/src/api/schema.js`).
-- All the actual mock logic lives behind one function:
-  `server/services/simulationService.js#getResult`. It currently does a
-  dataset lookup (`mockData/simulationResults.json`) with a seeded formulaic
-  fallback for any material/orientation/size/shape combo that isn't
-  precomputed. Swapping in a database query or a live ANSYS trigger later
-  means changing only the body of `getResult` — same input, same output
-  shape, zero UI changes.
+You can control how the backend generates results via the `SIMULATION_MODE` environment variable in `server/`:
 
-## Interacting with the demo
+| Mode | Behavior | Use Case |
+| :--- | :--- | :--- |
+| `ansys-live` *(Default)* | Connects to FastAPI microservice and executes real 3D `SOLID87` FEA in ANSYS MAPDL. If ANSYS is offline, automatically falls back to mock dataset. | Live production, hackathon demos with ANSYS installed. |
+| `mock` | Directly returns precomputed or formulaic mock data with a simulated 1–2s delay without calling Python. | Offline development, machines without ANSYS license. |
 
-- **Material System** (left panel, "Material Properties"): click **+ Add
-  Layer** on any material card to add it to the wall's layer stack — this
-  supports composite walls (e.g. Rammed Earth + PCM). Remove a layer with the
-  ✕. Click **Apply Material** to push the new combo into the output charts
-  and 3D model.
-- **Run Simulation** (bottom of the left panel): re-fetches a result for the
-  current inputs via `POST /api/run-simulation`, which has a simulated 1–2s
-  delay — this is where a real engine's compute time would show up later.
-- **3D View**: orbit/zoom the shelter model. Its color is a height-based
-  "thermal heatmap" shifted by the current average inside temperature, plus a
-  base ring accent tinted by the primary wall material.
+To run the backend in strict mock mode:
+```bash
+# In Windows PowerShell:
+$env:SIMULATION_MODE="mock"; npm run dev
+```
+
+---
+
+## 5. Verification & Testing
+
+### A. Node.js ↔ ANSYS Integration Test
+Runs an automated end-to-end test validating the complete pipeline, health checks, and frozen schema compliance:
+```bash
+cd server
+npm test
+```
+
+### B. Python Physics Engine Unit Tests
+Executes the test suite inside the `Ansys simulation` directory:
+```bash
+cd "Ansys simulation"
+uv run python -m unittest tests/test_simulation.py
+```
+
+---
+
+## 6. Public API Contract
+
+The API contract between React and Node.js is **frozen** and documented in [`server/schema.md`](server/schema.md):
+
+- `GET /api/materials`: Returns available wall and insulation materials.
+- `GET /api/climate?region=&season=`: Returns ambient hourly temperature and solar flux.
+- `GET /api/simulation-result?materialCombo=&orientation=&size=&shape=`: Fetches simulation results.
+- `POST /api/run-simulation`: Triggers simulation computation with JSON payload `{ materialCombo, orientation, size, shape, region, season }`.
+
+### Frozen Response Shape
+```json
+{
+  "id": "pcm+rammed-earth_south_medium_dome",
+  "source": "ansys-live",
+  "insideTemp": { "hours": [0, 1, 2, "...", 23], "values": [4.1, 3.9, 3.8, "..."] },
+  "ambientTemp": { "hours": [0, 1, 2, "...", 23], "values": [-20.5, -21.2, "..."] },
+  "solarEnergy": { "hours": [0, 1, 2, "...", 23], "valuesKwh": [0, 0, 0.15, "..."] },
+  "totalSolarKwh": 46.8,
+  "heatFlow": { "roofW": 47.2, "wallW": 295.2, "openingsW": 260.7 },
+  "efficiencyScore": 77,
+  "mostEfficientCombo": "PCM + Multi-material",
+  "energySavedPercent": 75
+}
+```
+
+---
+
+## 7. License & Hackathon Context
+
+Built for the **Smart India Hackathon (SIH 2026)** — High Altitude Passive Thermal Shelter Design problem statement.
+All thermal calculations comply with the First Law of Thermodynamics and ASHRAE / NBC 2016 building physics standards.

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getResult, getMaterials, getClimate } from '../services/simulationService.js';
+import { config } from '../config.js';
 
 const router = Router();
 
@@ -13,18 +14,19 @@ router.get('/climate', (req, res) => {
 });
 
 router.get('/simulation-result', async (req, res) => {
-  const { materialCombo, orientation, size, shape } = req.query;
-  const result = await getResult({ materialCombo, orientation, size, shape });
+  const { materialCombo, orientation, size, shape, region, season } = req.query;
+  const result = await getResult({ materialCombo, orientation, size, shape, region, season });
   res.json(result);
 });
 
-// Simulates wherever the real computation eventually happens (DB query,
-// interpolation, or a live ANSYS trigger) — same params, same delay-then-JSON contract.
+// Runs full simulation via ANSYS MAPDL (or mock fallback)
 router.post('/run-simulation', async (req, res) => {
-  const { materialCombo, orientation, size, shape } = req.body || {};
-  const delayMs = 1000 + Math.round(Math.random() * 1000);
-  await new Promise((resolve) => setTimeout(resolve, delayMs));
-  const result = await getResult({ materialCombo, orientation, size, shape });
+  const { materialCombo, orientation, size, shape, region, season } = req.body || {};
+  if (config.simulationMode === 'mock') {
+    const delayMs = 1000 + Math.round(Math.random() * 1000);
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+  const result = await getResult({ materialCombo, orientation, size, shape, region, season });
   res.json(result);
 });
 
