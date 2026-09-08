@@ -20,19 +20,23 @@
 | **[`report/phase2/stage_2_5_energy_balance_report.md`](./report/phase2/stage_2_5_energy_balance_report.md)** | **Stage 2.5 Technical Report**: 3D surface integral energy audit in Watts; First Law of Thermodynamics closure ($2.08\%$ error); Cool roof saves $196\,\text{W}$ of heat gain. | Reference for surface power audits and energy conservation validation. |
 | **[`report/phase3/stage_3_1_transient_report.md`](./report/phase3/stage_3_1_transient_report.md)** | **Stage 3.1 Technical Report**: Transient FEA (`PLANE77`, `ANTYPE, TRANS`), thermal storage ($\rho C_p$), 24h diurnal cycle, Time Lag ($\Delta t_{\text{lag}}=8.0\,\text{h}$), and Decrement ($\mu=0.015$). | Reference for thermal mass storage and diurnal time-stepping setup. |
 | **[`report/phase3/stage_3_2_3d_transient_report.md`](./report/phase3/stage_3_2_3d_transient_report.md)** | **Stage 3.2 Technical Report**: Full 3D 48h transient shelter with dynamic sun-position tracking (East $\to$ South $\to$ West solar migration) solved in 25 seconds. | Reference for 3D transient FEA and orientation solar tracking. |
+| **[`report/phase4/stage_4_1_eahe_report.md`](./report/phase4/stage_4_1_eahe_report.md)** | **Stage 4.1 Technical Report**: Earth-Air Heat Exchanger (EAHE) underground passive cooling pipeline, Kusuda soil model, and 3D FEA soil domain (`SOLID87`). | Reference for geothermal ground cooling and duct convection. |
+| **[`report/phase4/stage_4_2_solar_chimney_report.md`](./report/phase4/stage_4_2_solar_chimney_report.md)** | **Stage 4.2 Technical Report**: Solar Chimney natural buoyancy stack effect, coupled hydraulic loop equilibrium with EAHE, 3D FEA (`SOLID87`), and PyVista 3D streamlines. | Reference for zero-electricity buoyancy ventilation and thermal chimney modeling. |
+| **[`report/phase4/stage_4_3_windcatcher_report.md`](./report/phase4/stage_4_3_windcatcher_report.md)** | **Stage 4.3 Technical Report**: Multi-Directional Windcatcher (Malqaf/Badgir) aerodynamics, wetted terracotta evaporative cooling, 24h diurnal night-flushing, and 3D FEA (`SOLID87`). | Reference for wind capture, psychrometric evaporative cooling, and night-sky mass flushing. |
+| **[`report/phase5/stage_5_1_climate_pcm_report.md`](./report/phase5/stage_5_1_climate_pcm_report.md)** | **Stage 5.1 Technical Report**: 5 Indian Climate Zones (NBC 2016) benchmarking, non-linear Bio-PCM (`MP, ENTH`), Full Newton-Raphson FEA (`SOLID87`), and PyVista cutaways. | Reference for multi-climate regional modeling and latent phase-change thermal storage. |
+| **[`report/phase5/stage_5_2_trombe_wall_report.md`](./report/phase5/stage_5_2_trombe_wall_report.md)** | **Stage 5.2 Technical Report**: Indirect Solar Gain Trombe Wall & Attached Solarium modeling, buoyancy thermo-siphon, 10h stone masonry thermal lag, Leh Ladakh cold winter heating. | Reference for passive solar heating, cold climate design, and cavity thermosiphon dynamics. |
+| **[`report/phase6/phase6_optimization_report.md`](./report/phase6/phase6_optimization_report.md)** | **Phase 6 Technical Report**: Multi-Objective Genetic Algorithm (NSGA-II), 3D Pareto Frontier, Knee-point selection, 3D MAPDL validation (`SOLID87`), and parallel coordinates. | Reference for automated design optimization, cost-benefit trade-offs, and final system synthesis. |
 
 ---
 
 # 2. Current State
 
 ```text
-Current Phase:          Phase 3 (Transient Thermal Dynamics & Thermal Mass Mastery)
-Current Stage:          Stage 3.2 COMPLETED -> Ready for Phase 4
-Current Objective:      Transition to Phase 4: Advanced Passive Cooling Mechanisms (Earth-Air Heat Exchanger & Natural Ventilation)
-Overall Status:         ALL MILESTONES (Phase 1, Phase 2, Phase 3) 100% TESTED & FULLY FUNCTIONAL
-Last Completed Milestone: Phase 3 Stage 3.2 (3D Full-Shelter Transient Solar Tracking Simulation & Report)
-Current Working Files:  phases/phase3/transient_3d_shelter.py, phases/phase3/run_phase3_stage2.py
-Immediate Next Task:    Phase 4 Stage 4.1: Earth-Air Heat Exchanger (EAHE) Underground Pipe Thermal Coupling & Soil Temperature Profile Modeling
+Current Phase:          ALL PHASES (1 through 6) 100% COMPLETED!
+Current Objective:      SIH 2026 Passive Thermal Shelter Computational Pipeline Fully Built, Solved, and Validated
+Overall Status:         100% OPERATIONAL & VERIFIED (Phases 1.1-1.4, 2.1-2.5, 3.1-3.2, 4.1-4.3, 5.1-5.2, 6.1-6.3)
+Last Completed Milestone: Phase 6 Multi-Objective Genetic Algorithm & 3D Pareto Optimization Engine
+Current Working Files:  phases/phase6/optimization_engine.py, phases/phase6/run_phase6.py
 Known Blockers:         None
 ```
 
@@ -66,9 +70,12 @@ Known Blockers:         None
 | **Phase 2 — Stage 2.5** | Total 3D energy balance & surface power ledger in Watts ($2.08\%$ First Law error) | **COMPLETED** | [`report/phase2/stage_2_5_energy_balance_report.md`](./report/phase2/stage_2_5_energy_balance_report.md) \| [`phases/phase2/energy_audit_3d.py`](./phases/phase2/energy_audit_3d.py) |
 | **Phase 3 — Stage 3.1** | Transient 2D FEA (`PLANE77`), thermal mass storage ($\rho C_p$), Time Lag ($\Delta t_{\text{lag}}$), Decrement ($\mu$) | **COMPLETED** | [`report/phase3/stage_3_1_transient_report.md`](./report/phase3/stage_3_1_transient_report.md) \| [`phases/phase3/transient_thermal.py`](./phases/phase3/transient_thermal.py) |
 | **Phase 3 — Stage 3.2** | 3D 48h transient shelter with dynamic solar tracking (East $\to$ South $\to$ West migration) | **COMPLETED** | [`report/phase3/stage_3_2_3d_transient_report.md`](./report/phase3/stage_3_2_3d_transient_report.md) \| [`phases/phase3/transient_3d_shelter.py`](./phases/phase3/transient_3d_shelter.py) |
-| **Phase 4: Passive Cooling** | Earth-Air Heat Exchanger (EAHE), Solar Chimney buoyancy, Wind Catcher | **NEXT / IN PROGRESS** | Target: `phases/phase4/` & `report/phase4/` |
-| **Phase 5: Climate Adaptation** | 5 Indian climate zones (Hot-Dry, Warm-Humid, Composite, Cold-Cloudy, Cold-Sunny) | **PLANNED** | See [`ANSYS_THERMAL_LEARNING_ROADMAP.md`](./ANSYS_THERMAL_LEARNING_ROADMAP.md) |
-| **Phase 6: Multi-Objective Opt**| Automated Genetic Algorithm pipeline (Min Cost, Min Discomfort, Max Thermal Autonomy) | **PLANNED** | See [`ANSYS_THERMAL_LEARNING_ROADMAP.md`](./ANSYS_THERMAL_LEARNING_ROADMAP.md) |
+| **Phase 4 — Stage 4.1** | Earth-Air Heat Exchanger (EAHE) underground passive cooling pipeline | **COMPLETED** | [`report/phase4/stage_4_1_eahe_report.md`](./report/phase4/stage_4_1_eahe_report.md) \| [`phases/phase4/eahe_model.py`](./phases/phase4/eahe_model.py) |
+| **Phase 4 — Stage 4.2** | Solar Chimney buoyancy stack draft & coupled off-grid ventilation | **COMPLETED** | [`report/phase4/stage_4_2_solar_chimney_report.md`](./report/phase4/stage_4_2_solar_chimney_report.md) \| [`phases/phase4/solar_chimney.py`](./phases/phase4/solar_chimney.py) |
+| **Phase 4 — Stage 4.3** | Windcatcher (Malqaf/Badgir) Aerodynamics & Diurnal Control | **COMPLETED** | [`report/phase4/stage_4_3_windcatcher_report.md`](./report/phase4/stage_4_3_windcatcher_report.md) \| [`phases/phase4/windcatcher.py`](./phases/phase4/windcatcher.py) |
+| **Phase 5 — Stage 5.1** | 5 Indian Climate Zones Adaptation & Bio-PCM Latent Heat FEA | **COMPLETED** | [`report/phase5/stage_5_1_climate_pcm_report.md`](./report/phase5/stage_5_1_climate_pcm_report.md) \| [`phases/phase5/climate_pcm.py`](./phases/phase5/climate_pcm.py) |
+| **Phase 5 — Stage 5.2** | Trombe Wall Solar Storage & Sunspace Modeling for Cold Regions | **COMPLETED** | [`report/phase5/stage_5_2_trombe_wall_report.md`](./report/phase5/stage_5_2_trombe_wall_report.md) \| [`phases/phase5/trombe_wall.py`](./phases/phase5/trombe_wall.py) |
+| **Phase 6: Multi-Objective Opt**| Automated Genetic Algorithm pipeline (Min Cost, Min Discomfort, Max Thermal Autonomy) | **COMPLETED** | [`report/phase6/phase6_optimization_report.md`](./report/phase6/phase6_optimization_report.md) \| [`phases/phase6/optimization_engine.py`](./phases/phase6/optimization_engine.py) |
 
 ---
 
@@ -136,6 +143,18 @@ uv run python phases/phase2/run_phase2_stage2_5.py
 # 4. Phase 3: Transient Diurnal Thermal Mass & 3D Solar Path Migration
 uv run python phases/phase3/run_phase3_stage1.py
 uv run python phases/phase3/run_phase3_stage2.py
+
+# 5. Phase 4: Earth-Air Heat Exchanger, Solar Chimney, & Windcatcher
+uv run python phases/phase4/run_phase4_stage1.py
+uv run python phases/phase4/run_phase4_stage2.py
+uv run python phases/phase4/run_phase4_stage3.py
+
+# 6. Phase 5: 5 Indian Climate Zones, Bio-PCM FEA, & Trombe Wall Cold Heating
+uv run python phases/phase5/run_phase5_stage1.py
+uv run python phases/phase5/run_phase5_stage2.py
+
+# 7. Phase 6: Multi-Objective Genetic Algorithm (NSGA-II) Optimization
+uv run python phases/phase6/run_phase6.py
 ```
 
 ### Inspecting Environment & Dependencies
@@ -158,25 +177,23 @@ uv run python test_ansys.py
 | `***** MAPDL VERIFICATION RUN ONLY *****` | Low (Informational) | **Investigated & Understood** | Normal standard academic / student license banner output by MAPDL. Does not affect solver physics, matrix equations, or result validity. |
 | `UserWarning: The following keyword arguments are not used: type` | Low | **Resolved** | PyMAPDL `vatt` signature uses `type_` instead of `type`. Replaced in code. |
 | Process Hanging on Long 3D FEA Runs | Medium | **Resolved** | Solved by adding `concurrent.futures.ThreadPoolExecutor(timeout=180.0)` wrapper and optimizing `outres("ALL", "LAST")`. |
+| PyVista `extract_surface()` Future Warning | Low | **Resolved** | Always pass `algorithm="dataset_surface"` to `extract_surface()` in PyVista visualizers. |
 
 ---
 
-# 9. Immediate Next Task: Phase 4 Implementation Plan
+# 9. Master Roadmap Completion & Future Extensions
 
-The immediate next step is **Phase 4 Stage 4.1: Earth-Air Heat Exchanger (EAHE) Underground Pipe Thermal Coupling**.
+**ALL 6 ROADMAP PHASES ARE 100% COMPLETED AND FULLY TESTED.**
 
-### Objective
-1. **Model Underground Earth Undisturbed Soil Temperature Profile**:
-   $$T_{\text{soil}}(z, t) = T_{\text{mean}} - A_{\text{surf}} \cdot \exp\left(-z \sqrt{\frac{\pi}{365 \cdot \alpha_{\text{soil}}}}\right) \cdot \cos\left(\frac{2\pi}{365}\left(t - t_0 - \frac{z}{2}\sqrt{\frac{365}{\pi \cdot \alpha_{\text{soil}}}}\right)\right)$$
-   At depth $z = 3.0\,\text{m}$, ground temperature remains constant at $\sim 23^\circ\text{C} - 25^\circ\text{C}$ year-round.
-2. **Model EAHE Buried Air Duct Convection**:
-   - Ambient outdoor air ($44^\circ\text{C}$) enters an underground PVC/Concrete pipe ($L = 20\,\text{m}$, $D = 0.20\,\text{m}$, air velocity $v = 2.5\,\text{m/s}$).
-   - Heat transfers from hot air to cool earth via internal convective heat transfer ($Nu = 0.023 Re^{0.8} Pr^{0.33}$).
-   - Air exits into the shelter cooled down to **$25.5^\circ\text{C} - 27.0^\circ\text{C}$**, providing continuous passive air conditioning ($> 2.5\,\text{kW}$ cooling power) with zero compressor energy consumption!
-3. **Create Deliverables**:
-   - Code: `phases/phase4/eahe_model.py`, `phases/phase4/run_phase4_stage1.py`
-   - Figures: `report/phase4/figures/` (3D PyVista pipe-soil thermal contour + soil temperature depth curves)
-   - Standalone Report: `report/phase4/stage_4_1_eahe_report.md` (including "Walls Faced & How We Overcame Them")
+### Summary of System Capabilities
+1. **Multi-Physics Simulation**: 1D/2D/3D thermal conduction (`PLANE77`, `SOLID87`), Robin film convection, solar radiation superposition, internal occupant loads, and thermal mass phase-lag dynamics.
+2. **Geo-Solar & Aerodynamic Systems**: Coupled Earth-Air Heat Exchangers (EAHE), rooftop Solar Chimneys, and Multi-Directional Windcatchers (Malqaf/Badgir) delivering zero-electricity cooling.
+3. **Advanced Materials & Climate Adaptation**: Multi-climate zone modeling across all 5 Indian zones, Bio-PCM latent heat storage with non-linear enthalpy (`MP, ENTH`), and South-facing Trombe wall solar heating for cold mountain regions.
+4. **Intelligent Design Optimization**: Tri-objective NSGA-II genetic algorithm searching parametric shelter configurations to minimize cost and discomfort while maximizing thermal autonomy.
+
+### Potential Future Extensions for Production Deployment
+- Integration of live OpenWeatherMap / IMD API streaming data.
+- GUI / Web Application wrapper (Next.js / Streamlit) for field deployment by architectural engineers and disaster relief agencies.
 
 ---
 
