@@ -16,6 +16,10 @@
  * @property {number} wallW
  * @property {number} openingsW
  *
+ * @typedef {Object} VerticalProfilePoint
+ * @property {number} heightFrac - Normalized shelter height, 0 (floor) to 1 (roof).
+ * @property {number} tempC
+ *
  * @typedef {Object} SimulationResult
  * @property {string} id
  * @property {'mock'|'database'|'ansys-live'|'interpolated'} source
@@ -27,6 +31,8 @@
  * @property {number} efficiencyScore
  * @property {string} mostEfficientCombo
  * @property {number} energySavedPercent
+ * @property {VerticalProfilePoint[]} [verticalProfile] - Real (ANSYS) or synthetic-fallback
+ *   floor-to-roof temperature stratification, driving the 3D heatmap gradient.
  *
  * @typedef {Object} Material
  * @property {string} id

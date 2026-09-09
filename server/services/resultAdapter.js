@@ -28,6 +28,14 @@ export function formatSimulationResult(raw, source = 'ansys-live') {
   const solarEnergyHours = Array.isArray(raw.solarEnergy?.hours) ? raw.solarEnergy.hours : Array.from({ length: 24 }, (_, i) => i);
   const solarEnergyValues = Array.isArray(raw.solarEnergy?.valuesKwh) ? raw.solarEnergy.valuesKwh.map(Number) : [];
 
+  // Real (or synthetic-fallback) per-height temperature gradient, used by the
+  // frontend to drive a physically-derived 3D heatmap instead of one scalar.
+  const verticalProfile = Array.isArray(raw.verticalProfile)
+    ? raw.verticalProfile
+        .map((p) => ({ heightFrac: Number(p.heightFrac), tempC: Number(p.tempC) }))
+        .filter((p) => Number.isFinite(p.heightFrac) && Number.isFinite(p.tempC))
+    : undefined;
+
   return {
     id: String(raw.id || 'simulation_run'),
     source: String(source || raw.source || 'ansys-live'),
@@ -52,5 +60,6 @@ export function formatSimulationResult(raw, source = 'ansys-live') {
     efficiencyScore: Number(raw.efficiencyScore || 80),
     mostEfficientCombo: String(raw.mostEfficientCombo || 'PCM + Multi-material'),
     energySavedPercent: Number(raw.energySavedPercent || 70),
+    ...(verticalProfile?.length ? { verticalProfile } : {}),
   };
 }

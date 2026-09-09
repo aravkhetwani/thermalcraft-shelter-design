@@ -1,0 +1,26 @@
+{
+  "ladakh": {
+    "label": "Ladakh",
+    "latitude": 34.09,
+    "longitude": 77.58,
+    "elevationM": 3500
+  },
+  "siachen": {
+    "label": "Siachen Glacier",
+    "latitude": 35.42,
+    "longitude": 77.11,
+    "elevationM": 5400
+  },
+  "spiti": {
+    "label": "Spiti Valley",
+    "latitude": 32.25,
+    "longitude": 78.03,
+    "elevationM": 3800
+  },
+  "kaza": {
+    "label": "Kaza",
+    "latitude": 32.23,
+    "longitude": 78.07,
+    "elevationM": 3650
+  }
+}

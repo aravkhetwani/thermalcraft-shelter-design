@@ -37,6 +37,7 @@ from .schemas import (
     TimeSeriesData,
     SolarEnergyData,
     HeatFlowData,
+    VerticalProfilePoint,
 )
 
 
@@ -90,6 +91,34 @@ CLIMATE_HOURLY = {
     }
 }
 
+# Elevation (m) for regions without a dedicated hourly profile above. Used to
+# approximate their climate from the Ladakh baseline via a standard
+# environmental lapse rate, mirroring server/services/weatherService.js on
+# the Node side (which additionally pulls live data from Open-Meteo).
+REGION_ELEVATION_M = {
+    "ladakh": 3500.0,
+    "siachen": 5400.0,
+    "spiti": 3800.0,
+    "kaza": 3650.0,
+}
+LAPSE_RATE_C_PER_1000M = 6.5
+
+
+def _climate_for(region: str, season: str) -> Dict[str, Any]:
+    key = f"{region}_{season}"
+    if key in CLIMATE_HOURLY:
+        return CLIMATE_HOURLY[key]
+
+    baseline = CLIMATE_HOURLY.get(f"ladakh_{season}", CLIMATE_HOURLY["ladakh_winter"])
+    elevation_delta = REGION_ELEVATION_M.get(region, REGION_ELEVATION_M["ladakh"]) - REGION_ELEVATION_M["ladakh"]
+    temp_delta = -(elevation_delta / 1000.0) * LAPSE_RATE_C_PER_1000M
+
+    return {
+        **baseline,
+        "avg_temp": baseline["avg_temp"] + temp_delta,
+        "ambient_values": [v + temp_delta for v in baseline["ambient_values"]],
+    }
+
 
 def build_combo_key(req: SimulationRequest) -> str:
     combo = (req.materialCombo or "rammed-earth").lower()
@@ -102,8 +131,7 @@ def build_combo_key(req: SimulationRequest) -> str:
 def map_request_to_physics_input(req: SimulationRequest) -> SimulationInput:
     """Translates high-level UI simulation parameters into rigorous FEA inputs."""
     # 1. Climate Setup
-    climate_key = f"{(req.region or 'ladakh').lower()}_{(req.season or 'winter').lower()}"
-    base_climate = CLIMATE_HOURLY.get(climate_key, CLIMATE_HOURLY["ladakh_winter"])
+    base_climate = _climate_for((req.region or "ladakh").lower(), (req.season or "winter").lower())
 
     amb_temp = req.ambient_temp_c if req.ambient_temp_c is not None else base_climate["avg_temp"]
     peak_solar = req.solar_irradiance_peak_w_m2 if req.solar_irradiance_peak_w_m2 is not None else base_climate["peak_solar"]
@@ -213,8 +241,7 @@ def execute_ansys_simulation(req: SimulationRequest) -> SimulationResponse:
         raise RuntimeError(f"ANSYS solver failed with status {result.status}: {result.error_message}")
 
     # Build Climate 24h diurnal curve
-    climate_key = f"{(req.region or 'ladakh').lower()}_{(req.season or 'winter').lower()}"
-    base_climate = CLIMATE_HOURLY.get(climate_key, CLIMATE_HOURLY["ladakh_winter"])
+    base_climate = _climate_for((req.region or "ladakh").lower(), (req.season or "winter").lower())
     amb_hours = base_climate["ambient_hours"]
     amb_values = base_climate["ambient_values"]
 
@@ -258,6 +285,15 @@ def execute_ansys_simulation(req: SimulationRequest) -> SimulationResponse:
     efficiency_score = int(min(98, max(45, 100 - (total_loss_w / 1200.0) * 45)))
     energy_saved_pct = int(min(94, max(20, 100 - (total_loss_w / 1000.0) * 40)))
 
+    # Vertical temperature profile (real per-height FEA nodal averages), used
+    # by the frontend to drive a physically-derived heatmap gradient instead
+    # of a single scalar average temperature.
+    vertical_profile = None
+    if result.spatial_3d and result.spatial_3d.vertical_profile:
+        vertical_profile = [
+            VerticalProfilePoint(heightFrac=hf, tempC=t) for hf, t in result.spatial_3d.vertical_profile
+        ]
+
     # Raw physics metadata payload
     raw_physics = {
         "execution_time_seconds": round(result.execution_time_seconds, 2),
@@ -280,5 +316,6 @@ def execute_ansys_simulation(req: SimulationRequest) -> SimulationResponse:
         efficiencyScore=efficiency_score,
         mostEfficientCombo="PCM + Multi-material",
         energySavedPercent=energy_saved_pct,
+        verticalProfile=vertical_profile,
         raw_physics=raw_physics,
     )

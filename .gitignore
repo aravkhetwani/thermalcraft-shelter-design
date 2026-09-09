@@ -29,5 +29,8 @@ file.lock
 .vscode/
 .idea/
 
+# Local SQLite run history
+server/data/*.db
+
 # OS
 Thumbs.db

@@ -32,9 +32,19 @@ export async function isAnsysAvailable() {
  * @param {Object} params - { materialCombo, orientation, size, shape, region, season }
  * @returns {Promise<Object>} raw response from ANSYS FastAPI service
  */
+// Ventilation level -> air changes per hour, matching simulationService.js's VENTILATION_ACH.
+const VENTILATION_ACH = { low: 0.8, medium: 1.5, high: 2.6 };
+
 export async function requestAnsysSimulation(params) {
   const url = `${config.ansysServiceUrl}/simulate`;
-  
+
+  const openings = params.openings || {};
+  const baseAch = VENTILATION_ACH[(openings.ventilation || 'medium').toLowerCase()] ?? VENTILATION_ACH.medium;
+  const doors = Number.isFinite(Number(openings.doors)) ? Number(openings.doors) : 1;
+  const windows = Number.isFinite(Number(openings.windows)) ? Number(openings.windows) : 2;
+  // More doors/windows increase infiltration on top of the ventilation-level baseline.
+  const airChangesPerHour = Number((baseAch * (1 + doors * 0.05 + windows * 0.03)).toFixed(2));
+
   const payload = {
     materialCombo: params.materialCombo || 'rammed-earth',
     orientation: params.orientation || 'south',
@@ -42,6 +52,7 @@ export async function requestAnsysSimulation(params) {
     shape: params.shape || 'dome',
     region: params.region || 'ladakh',
     season: params.season || 'winter',
+    air_changes_per_hour: airChangesPerHour,
   };
 
   const response = await fetch(url, {

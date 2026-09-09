@@ -13,6 +13,12 @@ export async function fetchMaterials() {
   return data;
 }
 
+/** @returns {Promise<Array<{value:string,label:string,latitude:number,longitude:number,elevationM:number}>>} */
+export async function fetchRegions() {
+  const { data } = await http.get('/regions');
+  return data;
+}
+
 /** @returns {Promise<import('./schema').ClimateProfile>} */
 export async function fetchClimate(region, season) {
   const { data } = await http.get('/climate', { params: { region, season } });
@@ -20,20 +26,37 @@ export async function fetchClimate(region, season) {
 }
 
 /** @returns {Promise<import('./schema').SimulationResult>} */
-export async function fetchSimulationResult({ materialCombo, orientation, size, shape }) {
+export async function fetchSimulationResult({ materialCombo, orientation, size, shape, region, season, openings }) {
   const { data } = await http.get('/simulation-result', {
-    params: { materialCombo, orientation, size, shape },
+    params: { materialCombo, orientation, size, shape, region, season, openings: openings ? JSON.stringify(openings) : undefined },
   });
   return data;
 }
 
 /** @returns {Promise<import('./schema').SimulationResult>} */
-export async function runSimulation({ materialCombo, orientation, size, shape }) {
+export async function runSimulation({ materialCombo, orientation, size, shape, region, season, openings }) {
   const { data } = await http.post('/run-simulation', {
     materialCombo,
     orientation,
     size,
     shape,
+    region,
+    season,
+    openings,
   });
+  return data;
+}
+
+/** Sweeps geometry x orientation x material combos and returns a ranked comparison. */
+export async function fetchComparison({ region, season, size, openings }) {
+  const { data } = await http.get('/compare', {
+    params: { region, season, size, openings: openings ? JSON.stringify(openings) : undefined },
+  });
+  return data;
+}
+
+/** Recent persisted simulation runs. */
+export async function fetchHistory(limit = 10) {
+  const { data } = await http.get('/history', { params: { limit } });
   return data;
 }

@@ -2,7 +2,7 @@ import { Suspense, useMemo, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Html, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
-import { heatmapVertexShader, heatmapFragmentShader } from './heatmapShader';
+import { heatmapVertexShader, heatmapFragmentShader, HEATMAP_MAX_PROFILE } from './heatmapShader';
 import { useSimulation } from '../../context/SimulationContext';
 
 const SIZE_SCALE = { small: 0.78, medium: 1, large: 1.32 };
@@ -73,27 +73,53 @@ function ShelterMesh() {
 
   const tempNorm = THREE.MathUtils.clamp((avgTemp + 20) / 50, 0, 1);
 
+  // Real (or synthetic-fallback) floor-to-roof temperature stratification —
+  // see result.verticalProfile, sourced from ANSYS's actual per-height
+  // nodal field when live, or a physics-informed synthetic profile in mock
+  // mode. Normalized onto the same 0-1 color scale as uTempNorm.
+  const profile = useMemo(() => {
+    const points = result?.verticalProfile;
+    if (!Array.isArray(points) || points.length < 2) return null;
+    const sorted = [...points].sort((a, b) => a.heightFrac - b.heightFrac);
+    const heights = sorted.map((p) => THREE.MathUtils.clamp(p.heightFrac, 0, 1));
+    const temps = sorted.map((p) => THREE.MathUtils.clamp((p.tempC + 20) / 50, 0, 1));
+    return { heights, temps, count: Math.min(heights.length, HEATMAP_MAX_PROFILE) };
+  }, [result]);
+
   const firstMaterial = materials.find((m) => m.id === wallLayers[0]?.materialId);
   const tintColor = useMemo(() => new THREE.Color(firstMaterial?.color || '#4f8bf2'), [firstMaterial]);
 
-  const uniforms = useMemo(
-    () => ({
+  const uniforms = useMemo(() => {
+    const heights = new Array(HEATMAP_MAX_PROFILE).fill(0);
+    const temps = new Array(HEATMAP_MAX_PROFILE).fill(0);
+    return {
       uMinY: { value: geometry.boundingBox.min.y },
       uMaxY: { value: geometry.boundingBox.max.y },
       uTempNorm: { value: tempNorm },
       uMaterialTint: { value: tintColor },
-    }),
-    [geometry]
-  );
+      uProfileHeights: { value: heights },
+      uProfileTemps: { value: temps },
+      uProfileCount: { value: 0 },
+      uUseProfile: { value: 0 },
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [geometry]);
 
   useFrame(() => {
     if (!materialRef.current) return;
-    materialRef.current.uniforms.uTempNorm.value = THREE.MathUtils.lerp(
-      materialRef.current.uniforms.uTempNorm.value,
-      tempNorm,
-      0.06
-    );
-    materialRef.current.uniforms.uMaterialTint.value.lerp(tintColor, 0.08);
+    const u = materialRef.current.uniforms;
+    u.uTempNorm.value = THREE.MathUtils.lerp(u.uTempNorm.value, tempNorm, 0.06);
+    u.uMaterialTint.value.lerp(tintColor, 0.08);
+
+    const targetUseProfile = profile ? 1 : 0;
+    u.uUseProfile.value = THREE.MathUtils.lerp(u.uUseProfile.value, targetUseProfile, 0.08);
+    if (profile) {
+      u.uProfileCount.value = profile.count;
+      for (let i = 0; i < profile.count; i++) {
+        u.uProfileHeights.value[i] = profile.heights[i];
+        u.uProfileTemps.value[i] = THREE.MathUtils.lerp(u.uProfileTemps.value[i] || profile.temps[i], profile.temps[i], 0.1);
+      }
+    }
   });
 
   return (

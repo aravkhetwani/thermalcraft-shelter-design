@@ -11,7 +11,7 @@ Performs vectorized in-memory extraction of physical thermal fields from ANSYS M
 5. PyVista 3D grid assembly and VTK serialization
 """
 
-from typing import Dict, Tuple, Optional
+from typing import Dict, List, Tuple, Optional
 import numpy as np
 import pyvista as pv
 from ansys.mapdl.core import Mapdl
@@ -181,6 +181,8 @@ class ResultExtractor:
             is_conserved=is_conserved
         )
 
+        vertical_profile = cls._compute_vertical_profile(grid, nodal_temps, lz)
+
         spatial_data = SpatialField3D(
             nodal_temperatures=nodal_temps,
             heat_flux_x=q_x,
@@ -191,7 +193,30 @@ class ResultExtractor:
             mean_flux_mag=round(mean_flux, 2),
             node_count=int(mapdl.mesh.n_node),
             element_count=int(mapdl.mesh.n_elem),
-            vtk_file_path=vtk_output_path
+            vtk_file_path=vtk_output_path,
+            vertical_profile=vertical_profile,
         )
 
         return min_temp, max_temp, avg_indoor_temp, surfaces, energy_bal, spatial_data
+
+    @staticmethod
+    def _compute_vertical_profile(grid, nodal_temps: np.ndarray, height_m: float, n_bands: int = 10) -> List[Tuple[float, float]]:
+        """Mean nodal temperature per normalized height band (0=floor, 1=roof).
+
+        Height-normalized rather than raw XYZ node coordinates so the profile
+        can drive a heatmap on any frontend shelter shape, independent of the
+        FEA mesh's own (always-rectangular) geometry.
+        """
+        if grid is None or grid.n_points == 0 or height_m <= 0:
+            return []
+        z = grid.points[:, 2]
+        height_frac = np.clip(z / height_m, 0.0, 1.0)
+        edges = np.linspace(0.0, 1.0, n_bands + 1)
+        profile = []
+        for i in range(n_bands):
+            lo, hi = edges[i], edges[i + 1]
+            band_mask = (height_frac >= lo) & (height_frac <= hi if i == n_bands - 1 else height_frac < hi)
+            band_center = (lo + hi) / 2.0
+            if np.any(band_mask):
+                profile.append((round(float(band_center), 3), round(float(np.mean(nodal_temps[band_mask])), 2)))
+        return profile

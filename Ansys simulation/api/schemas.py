@@ -41,6 +41,12 @@ class HeatFlowData(BaseModel):
     openingsW: float
 
 
+class VerticalProfilePoint(BaseModel):
+    """Mean temperature at a normalized shelter height band (0=floor, 1=roof)."""
+    heightFrac: float
+    tempC: float
+
+
 class SimulationResponse(BaseModel):
     """Public frozen contract schema response returned to Node.js backend."""
     id: str
@@ -53,6 +59,7 @@ class SimulationResponse(BaseModel):
     efficiencyScore: int
     mostEfficientCombo: str
     energySavedPercent: int
+    verticalProfile: Optional[List[VerticalProfilePoint]] = None
     raw_physics: Optional[Dict[str, Any]] = None
 
 

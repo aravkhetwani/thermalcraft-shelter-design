@@ -1,5 +1,13 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { fetchClimate, fetchMaterials, fetchSimulationResult, runSimulation } from '../api/client';
+import {
+  fetchClimate,
+  fetchComparison,
+  fetchHistory,
+  fetchMaterials,
+  fetchRegions,
+  fetchSimulationResult,
+  runSimulation,
+} from '../api/client';
 
 const SimulationContext = createContext(null);
 
@@ -20,6 +28,7 @@ let layerUid = 0;
 const nextLayerUid = () => `layer-${++layerUid}-${Date.now()}`;
 
 export function SimulationProvider({ children }) {
+  const [regions, setRegions] = useState([]);
   const [region, setRegion] = useState('ladakh');
   const [season, setSeason] = useState('winter');
   const [dateRange, setDateRange] = useState('jan1-7');
@@ -27,6 +36,12 @@ export function SimulationProvider({ children }) {
   const [shape, setShape] = useState('dome');
   const [size, setSize] = useState('medium');
   const [orientation, setOrientation] = useState('south');
+
+  // Openings: doors/windows/ventilation — feeds heat-loss-through-openings calc.
+  const [doors, setDoors] = useState(1);
+  const [windows, setWindows] = useState(2);
+  const [ventilation, setVentilation] = useState('medium');
+  const openings = useMemo(() => ({ doors, windows, ventilation }), [doors, windows, ventilation]);
 
   const [materials, setMaterials] = useState([]);
   const [climate, setClimate] = useState(null);
@@ -40,14 +55,20 @@ export function SimulationProvider({ children }) {
   const [isApplyingMaterial, setIsApplyingMaterial] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  // Load the material library once via the API layer (never hardcode inline).
+  const [comparison, setComparison] = useState(null);
+  const [isComparing, setIsComparing] = useState(false);
+  const [history, setHistory] = useState([]);
+
+  // Load the region + material libraries once via the API layer (never hardcode inline).
   useEffect(() => {
+    fetchRegions().then(setRegions);
     fetchMaterials().then((data) => {
       setMaterials(data);
       if (data.length) {
         setWallLayers([{ uid: nextLayerUid(), materialId: data[0].id }]);
       }
     });
+    fetchHistory(10).then(setHistory);
   }, []);
 
   // Re-fetch the climate profile whenever region/season changes.
@@ -67,17 +88,33 @@ export function SimulationProvider({ children }) {
 
   const fetchResultFor = useCallback(
     async (materialCombo) => {
-      const data = await fetchSimulationResult({ materialCombo, orientation, size, shape });
+      const data = await fetchSimulationResult({ materialCombo, orientation, size, shape, region, season, openings });
       setResult(data);
     },
-    [orientation, size, shape]
+    [orientation, size, shape, region, season, openings]
   );
 
-  // Load an initial result as soon as materials are ready.
+  const loadComparison = useCallback(async () => {
+    setIsComparing(true);
+    try {
+      const data = await fetchComparison({ region, season, size, openings });
+      setComparison(data);
+    } finally {
+      setIsComparing(false);
+    }
+  }, [region, season, size, openings]);
+
+  // Load an initial result as soon as materials are ready, and whenever
+  // region/season/size/shape/orientation/openings change.
   useEffect(() => {
     if (wallLayers.length) fetchResultFor(comboKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [materials.length]);
+  }, [materials.length, region, season, size, shape, orientation, openings]);
+
+  // Re-run the optimization/comparison sweep whenever the site/geometry context changes.
+  useEffect(() => {
+    loadComparison();
+  }, [loadComparison]);
 
   const addLayer = useCallback((materialId) => {
     setWallLayers((layers) => [...layers, { uid: nextLayerUid(), materialId }]);
@@ -104,10 +141,11 @@ export function SimulationProvider({ children }) {
       setProgress((p) => Math.min(92, p + Math.random() * 18 + 6));
     }, 180);
     try {
-      const data = await runSimulation({ materialCombo: comboKey, orientation, size, shape });
+      const data = await runSimulation({ materialCombo: comboKey, orientation, size, shape, region, season, openings });
       setAppliedMaterialCombo(comboKey);
       setProgress(100);
       setResult(data);
+      fetchHistory(10).then(setHistory);
     } finally {
       clearInterval(tick);
       setTimeout(() => {
@@ -115,9 +153,10 @@ export function SimulationProvider({ children }) {
         setProgress(0);
       }, 350);
     }
-  }, [comboKey, orientation, size, shape]);
+  }, [comboKey, orientation, size, shape, region, season, openings]);
 
   const value = {
+    regions,
     region,
     setRegion,
     season,
@@ -132,6 +171,14 @@ export function SimulationProvider({ children }) {
     setSize,
     orientation,
     setOrientation,
+
+    doors,
+    setDoors,
+    windows,
+    setWindows,
+    ventilation,
+    setVentilation,
+    openings,
 
     materials,
     climate,
@@ -148,6 +195,12 @@ export function SimulationProvider({ children }) {
     isRunning,
     progress,
     runFullSimulation,
+
+    comparison,
+    isComparing,
+    loadComparison,
+
+    history,
   };
 
   return <SimulationContext.Provider value={value}>{children}</SimulationContext.Provider>;

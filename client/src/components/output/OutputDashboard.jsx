@@ -4,6 +4,8 @@ import InsideTempCard from './InsideTempCard';
 import SolarEnergyCard from './SolarEnergyCard';
 import HeatFlowCard from './HeatFlowCard';
 import EfficiencyCard from './EfficiencyCard';
+import ComparisonCard from './ComparisonCard';
+import RunHistoryCard from './RunHistoryCard';
 import { useSimulation } from '../../context/SimulationContext';
 
 export default function OutputDashboard() {
@@ -28,6 +30,8 @@ export default function OutputDashboard() {
             </div>
           </Panel>
           {result ? <EfficiencyCard /> : null}
+          <ComparisonCard />
+          <RunHistoryCard />
         </div>
 
         <div className="space-y-3 min-w-0">

@@ -308,6 +308,10 @@ class SpatialField3D:
     node_count: int                      # Total FEA mesh nodes
     element_count: int                   # Total FEA mesh elements
     vtk_file_path: Optional[str] = None  # Saved PyVista VTK file location
+    # Mean nodal temperature per normalized height band (floor=0.0, roof=1.0).
+    # Height-normalized (rather than raw node coordinates) so it can drive a
+    # heatmap on any frontend shelter shape, not just the FEA's own box mesh.
+    vertical_profile: List[Tuple[float, float]] = field(default_factory=list)
 
 
 @dataclass
