@@ -1,0 +1,52 @@
+{
+  "scenario": {
+    "region": "ladakh",
+    "season": "winter",
+    "hour": -1,
+    "ambient_temp_c": -18.2,
+    "solar_irradiance_peak_w_m2": 213.125,
+    "wind_speed_m_s": 14.5
+  },
+  "n_candidates_screened": 200000,
+  "surrogate_batch_predict_seconds": 0.21674429999984568,
+  "top_k": 20,
+  "validation": {
+    "mean_abs_surrogate_error_c": 1.6657704585933684,
+    "max_abs_surrogate_error_c": 3.484612500190735
+  },
+  "best_design": {
+    "length_m": 3.077156684407303,
+    "width_m": 2.527452796253707,
+    "height_m": 2.685191359848748,
+    "wall_thickness_m": 0.3508364662857101,
+    "roof_thickness_m": 0.28363265333214877,
+    "orientation": "west",
+    "primary_material": "insulated-composite",
+    "insulation_thickness_m": 0.13492479172424005,
+    "pcm_thickness_m": 0.017032207393950036,
+    "occupant_count": 8,
+    "equipment_load_w": 177.04171791261334,
+    "air_changes_per_hour": 0.561776696092025,
+    "predicted_indoor_temp_c": -1.0976125001907349,
+    "actual_indoor_temp_c": 2.387
+  },
+  "baseline_design": {
+    "length_m": 4.0,
+    "width_m": 3.0,
+    "height_m": 2.8,
+    "wall_thickness_m": 0.25,
+    "roof_thickness_m": 0.15,
+    "orientation": "south",
+    "primary_material": "rammed-earth",
+    "insulation_thickness_m": 0.0,
+    "pcm_thickness_m": 0.0,
+    "occupant_count": 4,
+    "equipment_load_w": 80.0,
+    "air_changes_per_hour": 1.5,
+    "ambient_temp_c": -18.2,
+    "solar_irradiance_peak_w_m2": 213.125,
+    "wind_speed_m_s": 14.5
+  },
+  "baseline_actual_indoor_temp_c": -12.7986,
+  "improvement_over_baseline_c": 15.1856
+}

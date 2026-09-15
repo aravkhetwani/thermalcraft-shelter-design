@@ -60,3 +60,11 @@ export async function fetchHistory(limit = 10) {
   const { data } = await http.get('/history', { params: { limit } });
   return data;
 }
+
+/** ML research pipeline summary — real trained-model metrics, feature
+ * importance, and optimization results. { hasData: false } if the Python
+ * pipeline (Ansys simulation/research/run_all.py) hasn't been run yet. */
+export async function fetchResearchSummary() {
+  const { data } = await http.get('/research/summary');
+  return data;
+}

@@ -34,3 +34,11 @@ server/data/*.db
 
 # OS
 Thumbs.db
+
+# Research pipeline: regeneratable trained model binaries (can be large,
+# e.g. RandomForest joblib files) — reproduce via
+# `python "Ansys simulation/research/train.py"`. Dataset CSV and small
+# results/*.json|csv artifacts ARE committed (they document real achieved
+# results without requiring a rerun).
+Ansys simulation/research/models/*.joblib
+Ansys simulation/research/tests/__pycache__/

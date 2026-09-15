@@ -86,6 +86,11 @@ SIH_2026/
 │   │   └── physics_engine.py   # Master run_simulation() API
 │   ├── tests/
 │   │   └── test_simulation.py  # Automated Python unit test suite
+│   ├── research/               # ML surrogate-modeling research extension (see docs/RESEARCH.md)
+│   │   ├── simulator.py        # Closed-form steady-state simulator (reuses physics_preprocessor.py)
+│   │   ├── dataset.py, features.py, train.py, optimize.py, benchmark.py, run_all.py
+│   │   ├── data/, models/, results/  # Generated dataset, trained models, experiment results
+│   │   └── tests/               # 28 pytest tests (physics, leakage, splits, reproducibility)
 │   ├── reports/                # Engineering reports & documentation ledger
 │   ├── run_simulation.py       # Standalone physics verification script
 │   └── README.md               # Dedicated engine documentation
@@ -190,7 +195,24 @@ The API contract between React and Node.js is **frozen** and documented in [`ser
 
 ---
 
-## 7. License & Hackathon Context
+## 7. ML Research Extension
+
+`Ansys simulation/research/` contains a reproducible ML surrogate-modeling pipeline built
+on top of this project's own building-physics equations: dataset generation, model
+training/evaluation (Linear/RandomForest/GradientBoosting/XGBoost), surrogate-driven
+design-space optimization, and simulator validation. Full methodology, real results, and
+limitations are documented in [`docs/RESEARCH.md`](docs/RESEARCH.md). Its results are
+rendered as a live dashboard section (real numbers, not hardcoded) at the bottom of the
+main React dashboard once the pipeline has been run:
+
+```bash
+cd "Ansys simulation"
+pip install -r research/requirements.txt
+python -m research.run_all      # dataset -> train -> optimize -> benchmark
+python -m pytest research/tests -v   # 28 tests
+```
+
+## 8. License & Hackathon Context
 
 Built for the **Smart India Hackathon (SIH 2026)** — High Altitude Passive Thermal Shelter Design problem statement.
 All thermal calculations comply with the First Law of Thermodynamics and ASHRAE / NBC 2016 building physics standards.

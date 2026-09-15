@@ -6,6 +6,7 @@ import HeatFlowCard from './HeatFlowCard';
 import EfficiencyCard from './EfficiencyCard';
 import ComparisonCard from './ComparisonCard';
 import RunHistoryCard from './RunHistoryCard';
+import ResearchDashboard from './ResearchDashboard';
 import { useSimulation } from '../../context/SimulationContext';
 
 export default function OutputDashboard() {
@@ -39,6 +40,11 @@ export default function OutputDashboard() {
           <SolarEnergyCard />
           <HeatFlowCard />
         </div>
+      </div>
+
+      <div className="panel-label px-1 mt-5 mb-3">Research Extension — ML Surrogate Modeling</div>
+      <div className="grid grid-cols-2 gap-3">
+        <ResearchDashboard />
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import { getResult, getMaterials, getClimate } from '../services/simulationServi
 import { listRegions } from '../services/weatherService.js';
 import { compareConfigurations } from '../services/optimizationService.js';
 import { recordRun, listRuns } from '../services/historyService.js';
+import { getResearchSummary } from '../services/researchService.js';
 import { config } from '../config.js';
 
 const router = Router();
@@ -69,6 +70,15 @@ router.get('/compare', async (req, res) => {
 router.get('/history', (req, res) => {
   const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
   res.json(listRuns(limit));
+});
+
+// ML research pipeline summary (model comparison, feature importance,
+// optimization result, surrogate speedup) — reads real artifacts produced by
+// `Ansys simulation/research/run_all.py`; returns { hasData: false } if the
+// pipeline hasn't been run yet.
+router.get('/research/summary', (req, res) => {
+  const summary = getResearchSummary();
+  res.json(summary || { hasData: false });
 });
 
 export default router;

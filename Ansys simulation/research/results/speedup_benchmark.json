@@ -1,0 +1,37 @@
+{
+  "n_repeats": 3,
+  "results": [
+    {
+      "batch_size": 100,
+      "simulator_seconds_mean": 0.0036004666653752793,
+      "surrogate_seconds_mean": 0.005317533332951522,
+      "speedup_x": 0.6770933889711648,
+      "simulator_calls_per_second": 27774.177431407195,
+      "surrogate_calls_per_second": 18805.711922917937
+    },
+    {
+      "batch_size": 1000,
+      "simulator_seconds_mean": 0.03013276666630797,
+      "surrogate_seconds_mean": 0.00520430000021103,
+      "speedup_x": 5.789974956302694,
+      "simulator_calls_per_second": 33186.464790109014,
+      "surrogate_calls_per_second": 192148.80002295232
+    },
+    {
+      "batch_size": 10000,
+      "simulator_seconds_mean": 0.24076983333361568,
+      "surrogate_seconds_mean": 0.021679933333264973,
+      "speedup_x": 11.10565376897107,
+      "simulator_calls_per_second": 41533.442381645014,
+      "surrogate_calls_per_second": 461256.03092405875
+    },
+    {
+      "batch_size": 100000,
+      "simulator_seconds_mean": 2.220629933333233,
+      "surrogate_seconds_mean": 0.11947363333395818,
+      "speedup_x": 18.5867782820836,
+      "simulator_calls_per_second": 45032.266970254226,
+      "surrogate_calls_per_second": 837004.7617157119
+    }
+  ]
+}
